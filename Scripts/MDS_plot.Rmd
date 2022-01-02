@@ -1,0 +1,250 @@
+---
+title: "POMPE MDS plot"
+author: "JCMM"
+date: "8/3/2021"
+output: pdf_document
+---
+
+## Install and load packages
+[Elegant-way-to-check-for-missing-packages-and-install-them](https://stackoverflow.com/questions/4090169/elegant-way-to-check-for-missing-packages-and-install-them)
+
+```{r, install and load packages}
+list_of_packages <- c("dplyr", "grafify", "RColorBrewer", "ggpubr")
+
+install.packages.auto <- function(x) { 
+  if(isTRUE(x %in% .packages(all.available = TRUE))) { 
+    eval(parse(text = sprintf("require(\"%s\")", x)))
+  } else { 
+    #update.packages(ask= FALSE) #update installed packages.
+    eval(parse(text = sprintf("install.packages(\"%s\", dependencies = TRUE)", x)))
+  }
+  if(isTRUE(x %in% .packages(all.available=TRUE))) { 
+    eval(parse(text = sprintf("require(\"%s\")", x)))
+  } else {
+    if (!requireNamespace("BiocManager", quietly = TRUE))
+      install.packages("BiocManager")
+    eval(parse(text = sprintf("BiocManager::install(\"%s\")", x, update = FALSE)))
+    eval(parse(text = sprintf("require(\"%s\")", x)))
+  }
+}
+
+lapply(list_of_packages, function(x) {message(x); install.packages.auto(x)})
+
+rm(list_of_packages, install.packages.auto)
+
+```
+
+```{r }
+# Change global default setting so every data frame created will not auto-convert to factors unless explicitly instructed
+options(stringsAsFactors = FALSE)
+```
+
+## Load 1000 G ped file
+```{r, load 1000 G metadata}
+PED <- read.table('../Files/20130606_g1k.ped', 
+                  header = TRUE, skip = 0, sep = '\t')
+#reduce
+PED = PED %>% select(Individual.ID, Population)
+PED = rename(PED, IID = Individual.ID)
+```
+
+##Load Population code
+from: [ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/phase3/20131219.populations.tsv](ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/phase3/20131219.populations.tsv)
+```{r, Load Population code}
+
+# 20131219.populations.tsv
+POP <- read.table('../Files/20131219.populations.tsv', 
+                 header = TRUE,  sep = '\t')
+
+# reduce
+POP = POP %>% select(Population.Code, Super.Population)
+POP = rename(POP, Population = Population.Code)
+
+#Annotate PED with groups from POP
+PED_ann = merge(POP, PED, by = "Population")
+```
+
+##Load mds cluster result
+```{r, load mds cluster result}
+
+mds.cluster <- read.csv("../Files/1kG_POMPE_R.mds.csv", 
+                       header=T)
+G1000.cluster = merge(mds.cluster, PED_ann, by = "IID")
+
+POMPE.cluster = mds.cluster[mds.cluster$FID!=0,]
+#check number of POMPE patients, should be 130
+dim(POMPE.cluster)
+
+POMPE.cluster$Population= "Dutch Pompe"
+POMPE.cluster$Super.Population= "Dutch Pompe"
+POMPE.cluster = POMPE.cluster %>%  select(names(G1000.cluster))
+#put them back together 
+mds_df = rbind( G1000.cluster, POMPE.cluster)
+
+```
+
+## Plot axis C1 and C2 for all groups
+```{r, plot}
+#create a color pallette
+super_pop_pal = c(
+  "#984EA3",       #AFR
+  "lightskyblue1", #AMR
+  "#E41A1C",       #POMPE
+  "#FF7F00",       #EAS
+  "black",         #EUR
+  "green"          #SAS
+  ) 
+  
+Fig.a1 <- plot_xy_CatGroup(mds_df,
+                          C2,
+                          C1,
+                          Super.Population,
+                          symsize = 3,
+                          symthick = 0.1,
+                          fontsize = 15,
+                          s_alpha = 0.5) +
+  scale_fill_manual(values = super_pop_pal, name = "") +
+  guides(fill = guide_legend(override.aes = list(alpha = 1)))  # override.aes overwrites the alpha
+
+Fig.a1
+```
+
+## Plot axis C1 and C3 for all groups
+```{r, plot}
+#create a color pallette
+super_pop_pal = c(
+  "#984EA3",       #AFR
+  "lightskyblue1", #AMR
+  "#E41A1C",       #POMPE
+  "#FF7F00",       #EAS
+  "black",         #EUR
+  "green"          #SAS
+  ) 
+  
+Fig.a2 <- plot_xy_CatGroup(mds_df,
+                          C3,
+                          C1,
+                          Super.Population,
+                          symsize = 3,
+                          symthick = 0.1,
+                          fontsize = 15,
+                          s_alpha = 0.5) +
+  scale_fill_manual(values = super_pop_pal, name = "") +
+  guides(fill = guide_legend(override.aes = list(alpha = 1)))  # override.aes overwrites the alpha
+
+Fig.a2
+```        
+
+## Arrange panels A
+```{r}
+
+Fig.a <- ggarrange( Fig.a1 ,Fig.a2,
+          common.legend = TRUE, legend = "right",
+          labels = "A",  font.label = list(size = 18),
+          ncol = 2, nrow = 1)
+Fig.a
+
+```
+
+
+##Zoom in the European group
+```{r}
+#create a color pallette
+EUR_pal = c(
+  "blue",    #CEU
+  "red" ,    #POMPE
+  "#4DAF4A", #FIN*
+  "gray48",  #GBR*
+  "#FFFF33", #IBS*
+  "#A65628"  #TSI*
+  ) 
+
+#remove non-EUR
+EUR = POP %>% filter(Super.Population == "EUR") 
+#plot
+Fig.b1 <- plot_xy_CatGroup(mds_df %>% 
+                            filter(Population == "Dutch Pompe" | Population %in% EUR$Population),
+                          C2,
+                          C1,
+                          Population,
+                          symsize = 3,
+                          symthick = 0.1,
+                          fontsize = 15,
+                          s_alpha = 0.5) +
+  # ylim(-0.04,0) +
+  # xlim(-0.06,-0.035) +
+  scale_fill_manual(values = EUR_pal, name = "") +
+  guides(fill = guide_legend(override.aes = list(alpha = 1)))  # override.aes overwrites the alpha
+
+Fig.b1
+```
+
+
+
+```{r}
+#create a color pallette
+EUR_pal = c(
+  "blue",    #CEU
+  "red" ,    #POMPE
+  "#4DAF4A", #FIN*
+  "gray48",  #GBR*
+  "#FFFF33", #IBS*
+  "#A65628"  #TSI*
+  ) 
+
+#remove non-EUR
+EUR = POP %>% filter(Super.Population == "EUR") 
+
+Fig.b2 <- plot_xy_CatGroup(mds_df %>% 
+                            filter(Population == "Dutch Pompe" | Population %in% EUR$Population),
+                          C3,
+                          C1,
+                          Population,
+                          symsize = 3,
+                          symthick = 0.1,
+                          fontsize = 15,
+                          s_alpha = 0.5) +
+  # ylim(-0.04,0) +
+  # xlim(-0.06,-0.035) +
+  scale_fill_manual(values = EUR_pal, name = "") +
+                    # 
+  guides(fill = guide_legend(override.aes = list(alpha = 1)))  # override.aes overwrites the alpha
+
+Fig.b2
+```
+
+## Arrange panels B
+```{r}
+
+Fig.b <- ggarrange( Fig.b1 ,Fig.b2,
+          common.legend = TRUE, legend = "right",
+          labels = "B",  font.label = list(size = 18),
+          ncol = 2, nrow = 1)
+Fig.b
+
+```
+
+## Arrange panels A and B
+```{r}
+
+Fig <- ggarrange( Fig.a ,Fig.b,
+          ncol = 1, nrow = 2)
+Fig
+```
+
+##If everyfing looks fine save figures as pdf
+```{r}
+
+ggsave("../Plots/POMPE_MDS_plot.AB.pdf", plot = Fig, dpi = 300,
+       width = 30,  height = 20,
+       units = "cm"
+       )
+ggsave("../Plots/POMPE_MDS_plot.A.pdf", plot = Fig.a, dpi = 300,
+       width = 30,  height = 10,
+       units = "cm"
+       )
+ggsave("../Plots/POMPE_MDS_plot.B.pdf", plot = Fig.b, dpi = 300,
+       width = 30,  height = 10,
+       units = "cm"
+       )
+```
