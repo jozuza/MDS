@@ -48,7 +48,7 @@ PED = PED %>% select(Individual.ID, Population)
 PED = rename(PED, IID = Individual.ID)
 ```
 
-##Load Population code
+## Load Population code
 from: [ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/phase3/20131219.populations.tsv](ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/phase3/20131219.populations.tsv)
 ```{r, Load Population code}
 
@@ -64,7 +64,7 @@ POP = rename(POP, Population = Population.Code)
 PED_ann = merge(POP, PED, by = "Population")
 ```
 
-##Load mds cluster result
+## Load mds cluster result
 ```{r, load mds cluster result}
 
 mds.cluster <- read.csv("../Files/1kG_POMPE_R.mds.csv", 
@@ -147,7 +147,7 @@ Fig.a
 ```
 
 
-##Zoom in the European group
+## Zoom in the European group
 ```{r}
 #create a color pallette
 EUR_pal = c(
@@ -232,7 +232,7 @@ Fig <- ggarrange( Fig.a ,Fig.b,
 Fig
 ```
 
-##If everyfing looks fine save figures as pdf
+## If everyfing looks fine save figures as pdf
 ```{r}
 
 ggsave("../Plots/POMPE_MDS_plot.AB.pdf", plot = Fig, dpi = 300,
