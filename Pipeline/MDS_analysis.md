@@ -2,6 +2,7 @@ vcf data
 
 # 03/08/2021
 **used**
+
 **- bcftools 1.10.2**
 Using htslib 1.10.2-3
 Copyright (C) 2019 Genome Research Ltd.
@@ -13,6 +14,7 @@ License Expat: The MIT/Expat license
 GNU General Public License v3
 
 **- R version 4.1.0**
+
 **- RStudio 1.4.1717**
 
 # vcf data
@@ -20,6 +22,7 @@ GNU General Public License v3
 chr*.dose.vcf.gz
 chr*.dose.vcf.gz.tbi
 chr*.info
+
 **working dir**: ~/Documents/Douglas/POMPE_MDS_analysis
 * * *
 **1. Convert the vcf files to BCF and fix header**
@@ -320,7 +323,7 @@ Platform: x86_64-pc-linux-gnu (64-bit)
 Running under: Ubuntu 20.04.2 LTS
 03/08/2021 
 ***
-title: "POMPE MDS plot"
+title: "MDS plot"
 author: "JCMM"
 ***
 
