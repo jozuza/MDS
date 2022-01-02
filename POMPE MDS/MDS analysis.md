@@ -1,4 +1,4 @@
-POMPE vcf data
+vcf data
 
 # 03/08/2021
 **used**
@@ -12,10 +12,10 @@ License Expat: The MIT/Expat license
 (C) 2005-2020 Shaun Purcell, Christopher Chang
 GNU General Public License v3
 
-**- R**
-**- RStudio**
+**- R version 4.1.0**
+**- RStudio 1.4.1717**
 
-# POMPE vcf data
+# vcf data
 **VCF files recieved from Douglas:**
 chr*.dose.vcf.gz
 chr*.dose.vcf.gz.tbi
@@ -32,7 +32,7 @@ bcftools view -h ../POMPE_vcf/chr14.dose.vcf.gz > hdr.txt
 ``` 
 
 ```
-#Open hdr.txt file and add the folowing lines after the last ##INFO line
+#Open hdr.txt file using any editor and add the folowing lines after the last ##INFO line
 ##FILTER=<ID=GENOTYPED,Description="Site was genotyped">
 ##FILTER=<ID=GENOTYPED_ONLY,Description="Site was genotyped only">
 ```
@@ -303,7 +303,7 @@ awk 'BEGIN{OFS=","};{print $1, $2, $3, $4, $5, $6, $7}' >> ${merge_dir}/1kG_POMP
 ```
 #This formats the plink output into an R compatible format.
 ***
-**10. Optiona: Run the PCA analysis**
+**10. Optional: Run the PCA analysis**
 
 ```
 export merge_dir=04.POMPE_processed
